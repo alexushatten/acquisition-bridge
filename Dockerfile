@@ -1,5 +1,5 @@
 # parameters
-ARG REPO_NAME="acquisition-bridge"
+ARG REPO_NAME="acquisition-bridge-goton"
 
 # ==================================================>
 # ==> Do not change this code

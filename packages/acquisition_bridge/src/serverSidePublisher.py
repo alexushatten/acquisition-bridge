@@ -2,7 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import CompressedImage, CameraInfo
-from std_msgs.msg import Float32, Bool, Int16
+from std_msgs.msg import Float32, Bool, Int16, Int32MultiArray
 import cPickle as pickle
 import os
 import Queue
@@ -24,6 +24,7 @@ class publishingProcessor():
         self.requestImageSend = False
         self.newEmergencyMsg = False
         self.emergencyRelease = False
+        self.newMovementMsg = False
 
         self.node_name = rospy.get_name()
         self.veh_name = self.node_name.split("/")[1]
@@ -54,6 +55,8 @@ class publishingProcessor():
                 '/'+self.veh_name+'/ready_to_start', Bool, queue_size=1)
             self.subscriberEmergencyStop = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"toggleEmergencyStop", Bool, self.toggleEmergencyStop,  queue_size=1)
+            self.subscriberGoToNcommands = rospy.Subscriber(
+                '/'+self.veh_name+'/'+"movement_commands", Int32MultiArray, self.semdMovementCommands,  queue_size=10)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(
@@ -119,12 +122,17 @@ class publishingProcessor():
                 inputDict['toggleEmergencyStop'] = self.emergencyToggle
                 self.logger.info("Emergency stop toggled")
 
+            if self.newMovementMsg:
+                inputDict['newMovementMsg'] = self.movement_toggle
+                self.logger.info("Movement_msg toggled")
+
             if inputDict:
                 inputDictQueue.put(obj=pickle.dumps(inputDict, protocol=-1),
                                    block=True,
                                    timeout=None)
                 self.requestImageSend = False
                 self.newEmergencyMsg = False
+                self.newMovementMsg = False
 
     def requestImage(self, data):
         self.logger.info("Topic received")
@@ -135,3 +143,8 @@ class publishingProcessor():
         self.logger.info("Got toggle message")
         self.newEmergencyMsg = True
         self.emergencyToggle = data.data
+
+    def semdMovementCommands(self, data):
+        self.logger.info("Got movement_commands message")
+        self.newMovementMsg = True
+        self.movement_toggle = data.data

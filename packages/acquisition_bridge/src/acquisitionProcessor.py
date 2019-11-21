@@ -3,6 +3,7 @@
 import rospy
 import numpy as np
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
+from std_msgs.msg import Int32MultiArray
 import cPickle as pickle
 import os
 import Queue
@@ -38,7 +39,7 @@ class acquisitionProcessor():
         self.subscriberCameraInfo = rospy.Subscriber(
             '/'+self.veh_name+'/'+"camera_node/camera_info", CameraInfo, self.camera_info,  queue_size=1)
 
-        if self.is_autobot:
+        if self.is_autobot:movement_commands_publisher
             self.trim = 0.0
             self.gain = 1.0
             self.readParamFromFile()
@@ -47,6 +48,8 @@ class acquisitionProcessor():
                 '/'+self.veh_name+'/'+self.acq_topic_wheel_command, WheelsCmdStamped, self.wheel_command_callback,  queue_size=5)
             self.emergency_stop_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/wheels_driver_node/emergency_stop", BoolStamped, queue_size=1)
+            self.movement_commands_publisher = rospy.Publisher(
+                "/"+self.veh_name+"/goto_n_duckiebot/movement_commands", Int32MultiArray, queue_size=1)
             self.wheels_cmd_msg_list = []
             self.wheels_cmd_lock = threading.Lock()
         else:
@@ -147,7 +150,7 @@ class acquisitionProcessor():
                         self.mask = self.bridge.cv2_to_compressed_imgmsg(
                             maskedImage, dst_format='png')
                         self.mask.header = currRawImage.header
-                    self.logger.info("mask norm is %s" % str(self.maskNorm))
+                    self.logger.info("mask normemergency_stop_publisher is %s" % str(self.maskNorm))
 
                     if self.maskNorm > 500:
                         self.publishImages = True
@@ -231,6 +234,11 @@ class acquisitionProcessor():
                     stopMsg.data = incomingData["toggleEmergencyStop"]
                     self.emergency_stop_publisher.publish(stopMsg)
                     self.logger.info("Emergency stop toggled")
+                if "newMovementMsg" in incomingData:
+                    movementMsg = Int32MultiArray()
+                    movementMsg.data = incomingData["newMovementMsg"]
+                    self.movement_commands_publisher.publish(movementMsg)
+                    self.logger.info("movementmessage toggled")
 
             except KeyboardInterrupt:
                 raise(Exception("Exiting"))
