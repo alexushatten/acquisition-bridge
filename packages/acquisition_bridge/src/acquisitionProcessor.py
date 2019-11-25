@@ -39,7 +39,7 @@ class acquisitionProcessor():
         self.subscriberCameraInfo = rospy.Subscriber(
             '/'+self.veh_name+'/'+"camera_node/camera_info", CameraInfo, self.camera_info,  queue_size=1)
 
-        if self.is_autobot:movement_commands_publisher
+        if self.is_autobot:
             self.trim = 0.0
             self.gain = 1.0
             self.readParamFromFile()
