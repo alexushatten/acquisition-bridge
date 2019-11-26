@@ -56,7 +56,9 @@ class publishingProcessor():
             self.subscriberEmergencyStop = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"toggleEmergencyStop", Bool, self.toggleEmergencyStop,  queue_size=1)
             self.subscriberGoToNcommands = rospy.Subscriber(
-                '/'+self.veh_name+'/'+"movement_commands", Int32MultiArray, self.semdMovementCommands,  queue_size=10)
+                '/'+self.veh_name+'/'+"movement_commands", Int32MultiArray, self.sendMovementCommands,  queue_size=10)
+            self.subscriberGoToNcommands = rospy.Subscriber(
+                '/'+self.veh_name+'/'+"positional_diff", Int32MultiArray, self.sendPoseDiff,  queue_size=10)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(
@@ -125,6 +127,10 @@ class publishingProcessor():
             if self.newMovementMsg:
                 inputDict['newMovementMsg'] = self.movement_toggle
                 self.logger.info("Movement_msg toggled")
+                
+            if self.newPoseDiffMsg:
+                inputDict['newPoseDiffMsg'] = self.posedifftoggle
+                self.logger.info("Posediff_msg toggled")
 
             if inputDict:
                 inputDictQueue.put(obj=pickle.dumps(inputDict, protocol=-1),
@@ -144,7 +150,12 @@ class publishingProcessor():
         self.newEmergencyMsg = True
         self.emergencyToggle = data.data
 
-    def semdMovementCommands(self, data):
+    def sendMovementCommands(self, data):
         self.logger.info("Got movement_commands message")
         self.newMovementMsg = True
         self.movement_toggle = data.data
+
+    def sendPoseDiff(self,data):
+        self.logger.info("Got positional_difference message")
+        self.newPoseDiffMsg = True
+        self.posedifftoggle = data.data

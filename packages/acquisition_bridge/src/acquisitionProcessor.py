@@ -50,6 +50,8 @@ class acquisitionProcessor():
                 "/"+self.veh_name+"/wheels_driver_node/emergency_stop", BoolStamped, queue_size=1)
             self.movement_commands_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/goto_n_duckiebot/movement_commands", Int32MultiArray, queue_size=1)
+            self.pose_diff_publisher = rospy.Publisher(
+                "/"+self.veh_name+"/goto_n_duckiebot/positional_diff", Int32MultiArray, queue_size=1)
             self.wheels_cmd_msg_list = []
             self.wheels_cmd_lock = threading.Lock()
         else:
@@ -238,7 +240,12 @@ class acquisitionProcessor():
                     movementMsg = Int32MultiArray()
                     movementMsg.data = incomingData["newMovementMsg"]
                     self.movement_commands_publisher.publish(movementMsg)
-                    self.logger.info("movementmessage toggled")
+                    self.logger.info("movement message toggled")
+                if "newPoseDiffMsg" in incomingData:
+                    posediffMsg = Int32MultiArray()
+                    posediffMsg.data = incomingData["newPoseDiffMsg"]
+                    self.pose_diff_publisher.publish(posediffMsg)
+                    self.logger.info("pose diff message toggled")
 
             except KeyboardInterrupt:
                 raise(Exception("Exiting"))
