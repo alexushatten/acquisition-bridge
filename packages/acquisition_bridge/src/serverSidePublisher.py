@@ -25,6 +25,7 @@ class publishingProcessor():
         self.newEmergencyMsg = False
         self.emergencyRelease = False
         self.newMovementMsg = False
+        self.newPoseDiffMsg = False
 
         self.node_name = rospy.get_name()
         self.veh_name = self.node_name.split("/")[1]
@@ -139,6 +140,7 @@ class publishingProcessor():
                 self.requestImageSend = False
                 self.newEmergencyMsg = False
                 self.newMovementMsg = False
+                self.newPoseDiffMsg = False
 
     def requestImage(self, data):
         self.logger.info("Topic received")

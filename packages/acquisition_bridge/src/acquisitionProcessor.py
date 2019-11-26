@@ -242,7 +242,7 @@ class acquisitionProcessor():
                     self.movement_commands_publisher.publish(movementMsg)
                     self.logger.info("movement message toggled")
                 if "newPoseDiffMsg" in incomingData:
-                    posediffMsg = Int32MultiArray()
+                    posediffMsg = Float32MultiArray()
                     posediffMsg.data = incomingData["newPoseDiffMsg"]
                     self.pose_diff_publisher.publish(posediffMsg)
                     self.logger.info("pose diff message toggled")
