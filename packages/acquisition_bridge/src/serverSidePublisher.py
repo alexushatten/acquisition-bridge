@@ -2,7 +2,7 @@
 
 import rospy
 from sensor_msgs.msg import CompressedImage, CameraInfo
-from std_msgs.msg import Float32, Bool, Int16, Int32MultiArray
+from std_msgs.msg import Float32, Bool, Int16, Int32MultiArray, Float32MultiArray
 import cPickle as pickle
 import os
 import Queue
@@ -58,7 +58,7 @@ class publishingProcessor():
             self.subscriberGoToNcommands = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"movement_commands", Int32MultiArray, self.sendMovementCommands,  queue_size=10)
             self.subscriberGoToNcommands = rospy.Subscriber(
-                '/'+self.veh_name+'/'+"positional_diff", Int32MultiArray, self.sendPoseDiff,  queue_size=10)
+                '/'+self.veh_name+'/'+"positional_diff", Float32MultiArray, self.sendPoseDiff,  queue_size=10)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(

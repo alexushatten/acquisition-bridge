@@ -3,7 +3,7 @@
 import rospy
 import numpy as np
 from sensor_msgs.msg import CompressedImage, Image, CameraInfo
-from std_msgs.msg import Int32MultiArray
+from std_msgs.msg import Int32MultiArray, Float32MultiArray
 import cPickle as pickle
 import os
 import Queue
@@ -51,7 +51,7 @@ class acquisitionProcessor():
             self.movement_commands_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/goto_n_duckiebot/movement_commands", Int32MultiArray, queue_size=1)
             self.pose_diff_publisher = rospy.Publisher(
-                "/"+self.veh_name+"/goto_n_duckiebot/positional_diff", Int32MultiArray, queue_size=1)
+                "/"+self.veh_name+"/goto_n_duckiebot/positional_diff", Float32MultiArray, queue_size=1)
             self.wheels_cmd_msg_list = []
             self.wheels_cmd_lock = threading.Lock()
         else:
