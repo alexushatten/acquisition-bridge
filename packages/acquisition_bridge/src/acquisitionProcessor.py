@@ -48,12 +48,17 @@ class acquisitionProcessor():
                 '/'+self.veh_name+'/'+self.acq_topic_wheel_command, WheelsCmdStamped, self.wheel_command_callback,  queue_size=5)
             self.emergency_stop_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/wheels_driver_node/emergency_stop", BoolStamped, queue_size=1)
+            self.wheels_cmd_msg_list = []
+            self.wheels_cmd_lock = threading.Lock()
+
+            #Added topics for go_to_n$
+            self.arrival_msg_list = []
+            self.arrival_msg_subscriber = rospy.Subscriber(
+                '/'+self.veh_name+'/'+"goto_n_duckiebot/arrival_msg", BoolStamped, self.arrival_msg_callback,  queue_size=5)
             self.movement_commands_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/goto_n_duckiebot/movement_commands", Int32MultiArray, queue_size=1)
             self.pose_diff_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/goto_n_duckiebot/positional_diff", Float32MultiArray, queue_size=1)
-            self.wheels_cmd_msg_list = []
-            self.wheels_cmd_lock = threading.Lock()
         else:
             self.light_sensor_subscriber = rospy.Subscriber(
                 '/'+self.veh_name+'/light_sensor_node/sensor_data', LightSensor, self.cb_light_sensor, queue_size=1)
@@ -128,6 +133,9 @@ class acquisitionProcessor():
 
         with self.wheels_cmd_lock:
             self.wheels_cmd_msg_list.append(wheels_cmd)
+
+    def arrival_msg_callback(self, arrival_msg):
+        self.arrival_msg_list.append(arrival_msg)
 
     def camera_image_process(self, currRawImage):
         with self.listLock:
@@ -209,6 +217,11 @@ class acquisitionProcessor():
                                             block=True,
                                             timeout=None)
                     self.wheels_cmd_msg_list = []
+
+                for arrival_msg in self.arrival_msg_list:
+                     outputDict = {"arrival_msg": arrival_msg}
+                     self.arrival_msg_list = []
+
             else:
                 if self.newMaskNorm:
                     self.newMaskNorm = False

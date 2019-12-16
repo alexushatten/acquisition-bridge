@@ -8,7 +8,7 @@ import os
 import Queue
 import collections
 import yaml
-from duckietown_msgs.msg import WheelsCmdStamped
+from duckietown_msgs.msg import WheelsCmdStamped, BoolStamped
 import time
 
 
@@ -60,6 +60,8 @@ class publishingProcessor():
                 '/'+self.veh_name+'/'+"movement_commands", Int32MultiArray, self.sendMovementCommands,  queue_size=10)
             self.subscriberGoToNcommands = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"positional_diff", Float32MultiArray, self.sendPoseDiff,  queue_size=10)
+            self.arrival_msg_publisher = rospy.Publisher(
+                '/'+self.veh_name+'/'+"arrival_msg", BoolStamped, queue_size=20)
             self.logger.info("Acquisition node setup in Duckiebot mode")
         else:
             self.publish_lux = rospy.Publisher(
@@ -104,6 +106,9 @@ class publishingProcessor():
                     else:
                         readyMsg.data = False
                         self.ready_to_start.publish(readyMsg)
+                if "arrival_msg" in incomingData:
+                    arrivalMsg = incomingData["arrival_msg"]
+                    self.arrival_msg_publisher.publish(arrivalMsg)
 
                 seq_stamper += 1
             except KeyboardInterrupt:
