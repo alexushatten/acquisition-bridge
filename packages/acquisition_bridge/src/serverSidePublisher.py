@@ -56,10 +56,20 @@ class publishingProcessor():
                 '/'+self.veh_name+'/ready_to_start', Bool, queue_size=1)
             self.subscriberEmergencyStop = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"toggleEmergencyStop", Bool, self.toggleEmergencyStop,  queue_size=1)
+
+            """
+            This subscriber subscribes to the movement commands from the planner
+            """
             self.subscriberGoToNcommands = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"movement_commands", Int32MultiArray, self.sendMovementCommands,  queue_size=10)
+            """
+            This subscriber subscribes to online localization from the server
+            """
             self.subscriberGoToNcommands = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"positional_diff", Float32MultiArray, self.sendPoseDiff,  queue_size=10)
+            """
+            This publishes message to tell server if bot has arrived at desired location
+            """
             self.arrival_msg_publisher = rospy.Publisher(
                 '/'+self.veh_name+'/'+"arrival_msg", BoolStamped, queue_size=20)
             self.logger.info("Acquisition node setup in Duckiebot mode")

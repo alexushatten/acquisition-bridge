@@ -53,10 +53,19 @@ class acquisitionProcessor():
 
             #Added topics for go_to_n$
             self.arrival_msg_list = []
+            """
+            This subscriber subscribes to the message from the bot saying if it has reached pose or not
+            """
             self.arrival_msg_subscriber = rospy.Subscriber(
                 '/'+self.veh_name+'/'+"goto_n_duckiebot/arrival_msg", BoolStamped, self.arrival_msg_callback,  queue_size=5)
+            """
+            This publishes movement commands on the bot side ROSMASTER
+            """
             self.movement_commands_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/goto_n_duckiebot/movement_commands", Int32MultiArray, queue_size=1)
+            """
+            This publishes positional difference on the bot side ROSMASTER
+            """
             self.pose_diff_publisher = rospy.Publisher(
                 "/"+self.veh_name+"/goto_n_duckiebot/positional_diff", Float32MultiArray, queue_size=1)
         else:
