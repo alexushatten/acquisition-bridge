@@ -45,7 +45,7 @@ LAB_ROS_MASTER_PORT = "11311"
 
 
 # Define the two concurrent processes:
-def runDeviceSideProcess(ROS_MASTER_URI, ROS_IP, quitEvent, is_autobot):
+def runDeviceSideProcess(ROS_MASTER_URI, ROS_IP, quitEvent, is_autobot, process_image_stream):
     """
     Receive and process data from the remote device (Duckiebot or watchtower).
     """
@@ -53,7 +53,7 @@ def runDeviceSideProcess(ROS_MASTER_URI, ROS_IP, quitEvent, is_autobot):
 
     os.environ['ROS_MASTER_URI'] = ROS_MASTER_URI
     os.environ['ROS_IP'] = ROS_IP
-    ap = acquisitionProcessor(logger, is_autobot)
+    ap = acquisitionProcessor(logger, is_autobot, process_image_stream)
     ap.liveUpdate(outputDictQueue, inputDictQueue, quitEvent)
 
 
@@ -91,6 +91,11 @@ if __name__ == '__main__':
     is_autobot = bool(rospy.get_param(
         "/"+veh_name+"/acquisition_bridge/is_autobot", default=True))
 
+    #Will it transport to the compressed images
+    process_image_stream = bool(rospy.get_param(
+        "/"+veh_name+"/acquisition_bridge/process_image_stream", default=True))
+
+    print (process_image_stream)
     # outputDictQueue is used to pass data between the two processes
     outputDictQueue = multiprocessing.Queue(maxsize=1000)
     inputDictQueue = multiprocessing.Queue(maxsize=100)
@@ -99,7 +104,7 @@ if __name__ == '__main__':
 
     deviceSideProcess = multiprocessing.Process(target=runDeviceSideProcess,
                                                 args=(
-                                                    ros_master_uri_device, ACQ_ROS_MASTER_URI_DEVICE_IP, quitEvent, is_autobot),
+                                                    ros_master_uri_device, ACQ_ROS_MASTER_URI_DEVICE_IP, quitEvent, is_autobot, process_image_stream),
                                                 name="deviceSideProcess")
 
     serverSideProcess = multiprocessing.Process(target=runServerSideProcess,

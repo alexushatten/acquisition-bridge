@@ -8,7 +8,7 @@ import os
 import Queue
 import collections
 import yaml
-from duckietown_msgs.msg import WheelsCmdStamped
+from duckietown_msgs.msg import WheelsCmdStamped, AprilTagDetectionArray, AprilTagDetection
 import time
 
 
@@ -42,6 +42,10 @@ class publishingProcessor():
             '/'+self.veh_name+'/'+"requestImage", Bool, self.requestImage,  queue_size=1)
         self.publisherCameraInfo = rospy.Publisher(
             "/"+self.veh_name+"/camera_node/camera_info", CameraInfo, queue_size=30)
+
+        self.publisherApriltagArray = rospy.Publisher(
+            "/poses_acquisition/poses", AprilTagDetectionArray, queue_size=1)
+
         self.logger.info(
             "Setting up the server side process completed. Waiting for messages...")
 
@@ -88,6 +92,9 @@ class publishingProcessor():
                     luxMsg = Int16()
                     luxMsg.data = incomingData["currentLux"]
                     self.publish_lux.publish(luxMsg)
+                if "apriltagArray" in incomingData:
+                    apriltagMsg = incomingData["apriltagArray"]
+                    self.publisherApriltagArray.publish(apriltagMsg)
                 if "wheels_cmd" in incomingData:
                     wheelMsg = incomingData["wheels_cmd"]
                     self.wheel_command_publisher.publish(wheelMsg)

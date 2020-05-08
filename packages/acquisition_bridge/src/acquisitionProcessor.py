@@ -9,9 +9,8 @@ import Queue
 import time
 import threading
 import cv2
-from duckietown_msgs.msg import WheelsCmdStamped, BoolStamped, LightSensor
+from duckietown_msgs.msg import WheelsCmdStamped, BoolStamped, LightSensor, AprilTagDetectionArray, AprilTagDetection
 from cv_bridge import CvBridge, CvBridgeError
-from duckietown_utils import get_duckiefleet_root
 import yaml
 import threading
 
@@ -21,7 +20,7 @@ class acquisitionProcessor():
     Processes the data coming from a remote device (Duckiebot or watchtower).
     """
 
-    def __init__(self, logger, is_autobot):
+    def __init__(self, logger, is_autobot, process_image_stream):
         self.logger = logger
         self.node_name = rospy.get_name()
         self.veh_name = self.node_name.split("/")[1]
@@ -30,6 +29,10 @@ class acquisitionProcessor():
 
         # Flag to skip the Raw processing step and always publish (i.e. for Duckiebots)
         self.is_autobot = is_autobot
+
+        #Flag to skip Raw image processing
+        self.process_image_stream = process_image_stream
+
         # Initialize ROS nodes and subscribe to topics
         rospy.init_node('acquisition_processor',
                         anonymous=True, disable_signals=True)
@@ -53,6 +56,8 @@ class acquisitionProcessor():
         self.wrong_size = False
         self.currentLux = 0
         self.newLuxData = False
+        self.lastApriltagArray = None
+        self.newApriltagData = False
 
         if self.is_autobot:
             self.trim = 0.0
@@ -69,14 +74,18 @@ class acquisitionProcessor():
             self.light_sensor_subscriber = rospy.Subscriber(
                 '/'+self.veh_name+'/light_sensor_node/sensor_data', LightSensor, self.cb_light_sensor, queue_size=1)
 
-        self.subscriberCompressedImage = rospy.Subscriber(
-            '/'+self.veh_name+'/'+self.acq_topic_raw, CompressedImage, self.camera_image_process, queue_size=30, buff_size=4000000)
+        if self.process_image_stream == True:
+            self.subscriberCompressedImage = rospy.Subscriber(
+                '/'+self.veh_name+'/'+self.acq_topic_raw, CompressedImage, self.camera_image_process, queue_size=30, buff_size=4000000)
 
-        self.subscriberCameraInfo = rospy.Subscriber(
-            '/'+self.veh_name+'/'+"camera_node/camera_info", CameraInfo, self.camera_info,   queue_size=1)
+            self.subscriberCameraInfo = rospy.Subscriber(
+                '/'+self.veh_name+'/'+"camera_node/camera_info", CameraInfo, self.camera_info,   queue_size=1)
+
+        self.subscriberApriltagArray = rospy.Subscriber(
+            '/'+self.veh_name+'/'+"tag_detections", AprilTagDetectionArray, self.cb_apriltag_info,   queue_size=1)
 
     def getFilePath(self, name):
-        return get_duckiefleet_root()+'/calibrations/kinematics/' + name + ".yaml"
+        return '/data/config/calibrations/kinematics/' + name + ".yaml"
 
     def readParamFromFile(self):
         # Check file existence
@@ -179,6 +188,10 @@ class acquisitionProcessor():
     def camera_info(self, camera_info):
         self.lastCameraInfo = camera_info
 
+    def cb_apriltag_info(self, apriltag_array):
+        self.lastApriltagArray = apriltag_array
+        self.newApriltagData = True
+
     def cb_light_sensor(self, data):
         self.currentLux = data.real_lux
         self.newLuxData = True
@@ -243,6 +256,10 @@ class acquisitionProcessor():
                 if self.newLuxData:
                     self.newLuxData = False
                     outputDict['currentLux'] = self.currentLux
+
+                if self.newApriltagData:
+                    self.newApriltagData = False
+                    outputDict['apriltagArray'] = self.lastApriltagArray
 
                 if outputDict:
                     try:
