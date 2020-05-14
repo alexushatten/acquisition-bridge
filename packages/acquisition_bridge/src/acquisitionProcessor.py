@@ -213,8 +213,8 @@ class acquisitionProcessor():
         """
         while not quitEvent.is_set():
             # Check if the last image data was not yet processed and if it's time to process it (in order to sustain the deisred update rate)
-            outputDict = dict()
             if self.publishImages:
+                outputDict = dict()
                 with self.listLock:
                     for image in self.imageCompressedList:
                         # Collect latest ros_data
@@ -233,8 +233,8 @@ class acquisitionProcessor():
                             break
                     self.imageCompressedList = []
 
-            outputDict = dict()
             if self.is_autobot:
+                outputDict = dict()
                 with self.wheels_cmd_lock:
                     for wheels_cmd in self.wheels_cmd_msg_list:
                         outputDict = {"wheels_cmd": wheels_cmd}
@@ -247,6 +247,19 @@ class acquisitionProcessor():
                                 "Timeout on outputqueue reached when trying to add wheel commands")
                             break
                     self.wheels_cmd_msg_list = []
+            
+            if self.newApriltagData:
+                self.newApriltagData = False
+                outputDict['apriltagArray'] = self.lastApriltagArray
+                try:
+                    outputDictQueue.put(obj=pickle.dumps(outputDict, protocol=-1),
+                                        block=True,
+                                        timeout=0.5)
+                except Exception:
+                    self.logger.info(
+                        "Timeout on outputqueue reached when trying to add Apriltagdetections")
+                    break
+
             else:
                 outputDict = dict()
                 if self.newMaskNorm:
@@ -257,9 +270,6 @@ class acquisitionProcessor():
                     self.newLuxData = False
                     outputDict['currentLux'] = self.currentLux
 
-                if self.newApriltagData:
-                    self.newApriltagData = False
-                    outputDict['apriltagArray'] = self.lastApriltagArray
 
                 if outputDict:
                     try:
