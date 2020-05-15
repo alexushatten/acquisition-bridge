@@ -8,7 +8,7 @@ import os
 import Queue
 import collections
 import yaml
-from duckietown_msgs.msg import WheelsCmdStamped, AprilTagDetectionArray, AprilTagDetection
+from duckietown_msgs.msg import WheelsCmdStamped, AprilTagDetectionArray, AprilTagDetection, Pose2DStamped
 import time
 
 
@@ -44,7 +44,7 @@ class publishingProcessor():
             "/"+self.veh_name+"/camera_node/camera_info", CameraInfo, queue_size=30)
 
         self.publisherApriltagArray = rospy.Publisher(
-            "/poses_acquisition/poses", AprilTagDetectionArray, queue_size=20)
+            "/"+self.veh_name+"/poses_acquisition/poses", AprilTagDetectionArray, queue_size=20)
 
         self.logger.info(
             "Setting up the server side process completed. Waiting for messages...")

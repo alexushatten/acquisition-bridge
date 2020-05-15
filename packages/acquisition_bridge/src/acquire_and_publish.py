@@ -95,7 +95,6 @@ if __name__ == '__main__':
     process_image_stream = bool(rospy.get_param(
         "/"+veh_name+"/acquisition_bridge/process_image_stream", default=True))
 
-    print (process_image_stream)
     # outputDictQueue is used to pass data between the two processes
     outputDictQueue = multiprocessing.Queue(maxsize=1000)
     inputDictQueue = multiprocessing.Queue(maxsize=100)
